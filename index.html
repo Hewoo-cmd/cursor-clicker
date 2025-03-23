@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor Clicker</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 1s ease;
+        }
+        .game-container {
+            width: 80%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+        .left-section, .right-section {
+            width: 45%;
+        }
+        .left-section {
+            text-align: center;
+            border-right: 2px solid #ddd;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .cursor-container {
+            margin-top: 20px;
+        }
+        .cursor {
+            width: 150px;
+            cursor: pointer;
+            transition: transform 0.1s, filter 0.3s ease-in-out;
+        }
+        .cursor:active {
+            transform: scale(0.9);
+        }
+        .stats {
+            font-size: 22px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .right-section {
+            padding-top: 20px;
+        }
+        .upgrade-container {
+            margin-top: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 12px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .auto-clicker-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .auto-clicker-icon {
+            width: 40px;
+            margin-right: 10px;
+            transition: transform 0.5s ease;
+        }
+        .auto-clicker-active {
+            animation: rotate 1s infinite linear;
+        }
+        @keyframes rotate {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        #achievements {
+            margin-top: 20px;
+        }
+        .achievement {
+            padding: 10px;
+            margin-top: 5px;
+            background-color: #ffd700;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+        }
+        /* Version Info */
+        .version-info {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- Left Section - Cursor -->
+        <div class="left-section">
+            <h1>Cursor Clicker 🖱️</h1>
+            <p class="stats">Clicks: <span id="clickCount">0</span></p>
+            <div class="cursor-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Cursor" class="cursor" id="clickButton">
+            </div>
+        </div>
+
+        <!-- Right Section - Upgrades and Achievements -->
+        <div class="right-section">
+            <h2>Upgrades & Auto-Clickers ⚡</h2>
+            <p class="stats">Auto-Clicker Cost: <span id="autoClickerCost">10</span> clicks</p>
+            <div class="auto-clicker-container">
+                <img src="https://cdn-icons-png.flaticon.com/512/1828/1828673.png" alt="Auto Cursor" class="auto-clicker-icon" id="autoClickerIcon">
+                <button id="buyAutoClicker">Buy Auto-Clicker (+1 click/sec)</button>
+            </div>
+
+            <div id="achievements"></div>
+        </div>
+    </div>
+
+    <!-- Version Info -->
+    <div class="version-info">v-1</div>
+
+    <script>
+        let clickCount = 0;
+        let clickValue = 1;
+        let autoClickers = 0;
+        let autoClickerCost = 10;
+        let bgLevel = 0;
+        let milestones = [50, 100, 500, 1000, 5000];
+        let bgColors = ["#f4f4f4", "#ffebcd", "#c6e2ff", "#f5deb3", "#ffe4e1"];
+        let achievementsUnlocked = [];
+
+        // Handle cursor clicks
+        document.getElementById("clickButton").addEventListener("click", function () {
+            clickCount += clickValue;
+            animateCursor();
+            updateClickCount();
+            checkMilestones();
+        });
+
+        // Handle auto-clicker purchase
+        document.getElementById("buyAutoClicker").addEventListener("click", function () {
+            if (clickCount >= autoClickerCost) {
+                clickCount -= autoClickerCost;
+                autoClickers++;
+                autoClickerCost = Math.floor(autoClickerCost * 1.1); // Increase cost by 10%
+                updateClickCount();
+                updateAutoClickerCost();
+                animateAutoClicker();
+            }
+        });
+
+        // Auto-clicker function (clicks every second)
+        setInterval(function () {
+            if (autoClickers > 0) {
+                clickCount += autoClickers;
+                updateClickCount();
+                checkMilestones();
+                animateAutoClicker(); // Trigger auto-clicker animation
+            }
+        }, 1000);
+
+        // Animate the cursor on click
+        function animateCursor() {
+            const cursor = document.getElementById("clickButton");
+            cursor.style.transform = "scale(1.1)";
+            cursor.style.filter = "brightness(1.2)";
+            setTimeout(() => {
+                cursor.style.transform = "scale(1)";
+                cursor.style.filter = "brightness(1)";
+            }, 100);
+        }
+
+        // Animate the auto-clicker when active
+        function animateAutoClicker() {
+            const autoClickerIcon = document.getElementById("autoClickerIcon");
+            if (autoClickers > 0) {
+                autoClickerIcon.classList.add("auto-clicker-active");
+            } else {
+                autoClickerIcon.classList.remove("auto-clicker-active");
+            }
+        }
+
+        // Update click count display
+        function updateClickCount() {
+            document.getElementById("clickCount").textContent = clickCount;
+        }
+
+        // Update auto-clicker cost display
+        function updateAutoClickerCost() {
+            document.getElementById("autoClickerCost").textContent = autoClickerCost;
+        }
+
+        // Check for milestones and change background/visuals
+        function checkMilestones() {
+            for (let i = 0; i < milestones.length; i++) {
+                if (clickCount >= milestones[i] && bgLevel === i) {
+                    document.body.style.backgroundColor = bgColors[i];
+                    bgLevel++;
+                    unlockAchievement(`Milestone: ${milestones[i]} clicks! 🎉`);
+                }
+            }
+        }
+
+        // Unlock achievements and show them
+        function unlockAchievement(name) {
+            if (!achievementsUnlocked.includes(name)) {
+                achievementsUnlocked.push(name);
+                const achievement = document.createElement("div");
+                achievement.className = "achievement";
+                achievement.innerHTML = name;
+                document.getElementById("achievements").appendChild(achievement);
+            }
+        }
+    </script>
+</body>
+</html>
